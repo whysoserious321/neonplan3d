@@ -1,4 +1,4 @@
-// Looks of the 3D view. Geometry keeps its neon colours; a small shader patch maps them to the chosen
+﻿// Looks of the 3D view. Geometry keeps its neon colours; a small shader patch maps them to the chosen
 // look, so switching is instant and nothing has to be rebuilt. Signal colours (lit lamps, open windows,
 // glowing screens) are bright and saturated and stay as they are in every look.
 
@@ -20,10 +20,10 @@ export const accentUniform = { value: new Vector3(0.22, 0.88, 1) };
 export const accentOnUniform = { value: 0 };
 
 /** The neon look's fill (walls, floors, furniture bodies): the stock dark navy, or a colour of the user's choice. */
-export const fillUniform = { value: new Vector3(0.09, 0.13, 0.22) };
+export const fillUniform = { value: new Vector3(0.0086, 0.0159, 0.0395) };
 export const fillOnUniform = { value: 0 };
 
-/** "#rrggbb" to the 0–1 colour the shader uses, null for anything else. */
+/** "#rrggbb" to the 0â€“1 colour the shader uses, null for anything else. */
 export function parseAccent(hex: string | null | undefined): [number, number, number] | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex?.trim() ?? "");
   if (!m) return null;
@@ -43,7 +43,7 @@ vec3 fp3dThemed(vec3 c, bool line) {
   float sat = mx > 0.0 ? (mx - mn) / mx : 0.0;
   if (uTheme == 0) {
     // an own fill: the dark navy surfaces (walls, floors, furniture bodies) take it and keep their shading
-    if (uFillOn == 1 && !line && mx < 0.42 && c.b >= c.g && c.g < c.b * 0.66 && c.r < c.b * 0.5) return min(uFill * (mx / 0.22), vec3(1.0));
+    if (uFillOn == 1 && !line && mx < 0.42 && c.b >= c.g && c.g < c.b * 0.45 && c.r < c.b * 0.5) return min(uFill * min(mx / 0.04, 2.0), vec3(1.0));
     // an own accent: every line and every cyan surface takes it, as bright as it was
     if (uAccentOn == 1 && (line || (sat > 0.35 && c.r < c.g * 0.8 && c.b > c.g * 0.85 && c.g > c.b * 0.6))) return uAccent * mx;
     return c;
@@ -56,7 +56,7 @@ vec3 fp3dThemed(vec3 c, bool line) {
     if (line) return vec3(0.8, 0.9, 1.0) * min(1.0, mx * 1.15);
     return mix(vec3(0.04, 0.13, 0.3), vec3(0.2, 0.42, 0.75), clamp(l * 5.0, 0.0, 1.0));
   }
-  // day: light surfaces that keep their shading and some of their hue, dark blue lines (#645: too bright, too flat –
+  // day: light surfaces that keep their shading and some of their hue, dark blue lines (#645: too bright, too flat â€“
   // the neon surfaces' dark tones are spread wider, so walls, floors and furniture stand apart)
   if (line) return vec3(0.05, 0.11, 0.27) * clamp(mx * 1.6, 0.6, 1.0);
   vec3 g = vec3(clamp(0.28 + l * 3.6, 0.0, 0.92));

@@ -1402,11 +1402,12 @@ export class FloorplanViewer {
 
   /** A fill colour of the user's choice for walls, floors and furniture in the neon look ("#rrggbb"), null for the stock navy. */
   setFill(hex: string | null): void {
-    const rgb = parseAccent(hex);
-    const on = rgb ? 1 : 0;
-    if (on === fillOnUniform.value && (!rgb || fillUniform.value.equals(new Vector3(...rgb)))) return;
+    // the shader works on linear colours, like the geometry's own
+    const own = parseAccent(hex) ? new Color(hex!.trim()) : null;
+    const on = own ? 1 : 0;
+    if (on === fillOnUniform.value && (!own || fillUniform.value.equals(new Vector3(own.r, own.g, own.b)))) return;
     fillOnUniform.value = on;
-    if (rgb) fillUniform.value.set(...rgb);
+    if (own) fillUniform.value.set(own.r, own.g, own.b);
     this.invalidate();
   }
 

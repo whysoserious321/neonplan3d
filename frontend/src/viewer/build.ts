@@ -21,7 +21,7 @@ import { mountBase, packItem } from "../packs.ts";
 import { pushOutdoor } from "./outdoor.ts";
 import { pushModules } from "./roof.ts";
 import type { RoofFace } from "../solar.ts";
-import { cutAbove, cutLinesAbove, FURN_OFFSET, ALWAYS, CAP_OFFSET, CUT_OFFSET, EDGE_BASE, EDGE_CUT, EDGE_SOFT, EDGE_TOP, GeoBuffer, LineBuffer, LOWER_OFFSET, pushPrism, shade, triangulate } from "./geo.ts";
+import { cutAbove, cutLinesAbove, FURN_OFFSET, ALWAYS, CAP_OFFSET, CUT_OFFSET, EDGE_BASE, EDGE_CUT, EDGE_SOFT, EDGE_TOP, GeoBuffer, LineBuffer, LOWER_OFFSET, pushPrism, shade, tintNavy, triangulate } from "./geo.ts";
 
 export { ALWAYS, CUT_OFFSET, GeoBuffer, LineBuffer, pushPrism, shade } from "./geo.ts";
 
@@ -162,7 +162,9 @@ export function buildFloorGeometry(
     if (room.points.length < 3) continue;
     const poly = ccw(room.points);
     const look = FLOOR_LOOK[room.floor_material] ?? FLOOR_LOOK.wood;
-    const top = new Color(look.color);
+    // an own floor colour replaces the material's (its pattern lines still show on top)
+    const ownFloor = /^#[0-9a-f]{6}$/i.test(room.floor_color ?? "") ? parseInt(room.floor_color!.slice(1), 16) : null;
+    const top = new Color(ownFloor ?? look.color);
     // an opening snapped to the room's edge is still cut, a few millimetres in from it
     // an opening across a room line is cut in every room it covers: here, the part inside this room (#353)
     // the openings are clipped one by one and only then merged: an opening joined with the stairs' own hole before
@@ -183,7 +185,7 @@ export function buildFloorGeometry(
       const c = all[l];
       floorBuf.tri([a[0], 0, a[1]], [c[0], 0, c[1]], [b[0], 0, b[1]], top, top, top, [a[0], a[1], c[0], c[1], b[0], b[1]], ALWAYS, look.tile);
     }
-    roomTris.push({ roomId: room.id, start, end: floorBuf.count, color: look.color });
+    roomTris.push({ roomId: room.id, start, end: floorBuf.count, color: ownFloor ?? look.color });
     const slab = new Color(NEON.slab);
     const sides = (ring: Vec2[]) => {
       for (let i = 0; i < ring.length; i++) {
@@ -465,6 +467,8 @@ export function buildFloorGeometry(
       base = at.y;
     }
     pushFurniture(wallBuf, lines, shadow, f, base);
+    // an own body colour: the navy surfaces of this piece take it, signal colours and glass stay
+    if (/^#[0-9a-f]{6}$/i.test(f.color ?? "")) tintNavy(wallBuf, start, wallBuf.count, parseInt(f.color!.slice(1), 16));
     // a wardrobe or a stair reaching above the cut height is cut with the walls, so it hides nothing behind it
     if (base + f.h > cut + 0.05) {
       cutAbove(wallBuf, start, cut, FURN_OFFSET);

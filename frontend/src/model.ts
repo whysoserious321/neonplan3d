@@ -30,6 +30,8 @@ export interface Room {
   start_view?: StartView | null;
   points: Vec2[];
   floor_material: string;
+  /** Own colour of the floor ("#rrggbb"); null = the material's colour. */
+  floor_color?: string | null;
   /** Entities shown in the room's panel although they are not in the plan. */
   panel?: string[];
   /** Entities of the room's area kept out of the room panel. */
@@ -165,6 +167,8 @@ export interface Gang {
 export interface Furniture {
   /** Fixed against moving by accident. */
   locked?: boolean | null;
+  /** Own body colour ("#rrggbb") in the neon look; null = the look's own colours. */
+  color?: string | null;
   /** Furniture block: items with the same group id are selected, moved and turned together (a kitchen, a wall unit). */
   group?: string | null;
   /** Pool Pro, sand filter: the six-way valve's position (null = filter). */

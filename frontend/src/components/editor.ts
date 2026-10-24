@@ -5,6 +5,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { ref } from "lit/directives/ref.js";
 import { fetchImage, importPack, listHistory, restoreSnapshot, storeImage, takeSnapshot, type Snapshot, getVoiceSettings, setVoiceSentences, type SentenceMode } from "../api.ts";
 import { download, exportFile, parseExport } from "../transfer.ts";
+import { parseColorText, usedColors } from "../color-input.ts";
 import { carEntities, type CarEntities, areaEntities, autoPlace, hiddenInHa, CLIMATE_CLASSES, defaultHeight, entityName, entityAreaId, furnitureEntities, groupByDevice, hasScreen, isMediaFurniture, isPlaceable, isRoomClimateSensor, kindOf, openingEntities, otherAreaEntities, pictureRuleMatches, roomClimateSensors, unassignedEntities, windowPosition, type ClimateKey } from "../devices.ts";
 import { furnitureSymbol } from "./furniture2d.ts";
 import { clipConvex, netRoomArea } from "../geometry/area.ts";
@@ -2674,6 +2675,38 @@ export class Fp3dEditor extends LitElement {
     return this._wallId ? (this.floor?.walls ?? []).find((w) => w.id === this._wallId) : undefined;
   }
 
+  /**
+   * A colour field: the picker, a text field that takes "#rrggbb", "rrggbb" or "r, g, b" (so a colour can be pasted
+   * from another field), and the colours already used in this plan as swatches to click.
+   */
+  private colorField(label: string, value: string | null, fallback: string, set: (v: string | null) => void, hint = ""): TemplateResult {
+    const used = usedColors(this._doc.floors).filter((c) => c !== value);
+    return html`<div class="fp3d-colorfield fp3d-wide" title=${hint}>
+      <span>${label}</span>
+      <input type="color" .value=${value ?? fallback} @input=${(e: Event) => set((e.target as HTMLInputElement).value)} />
+      <input
+        type="text"
+        class="fp3d-hex"
+        maxlength="24"
+        spellcheck="false"
+        placeholder=${fallback}
+        .value=${value ?? ""}
+        @change=${(e: Event) => {
+          const input = e.target as HTMLInputElement;
+          const v = parseColorText(input.value);
+          if (v) set(v);
+          else input.value = value ?? "";
+        }}
+      />
+      ${this.isAdmin && value ? html`<button class="fp3d-btn" title=${this.t("color_reset")} @click=${() => set(null)}>↺</button>` : nothing}
+      ${used.length
+        ? html`<span class="fp3d-swatches" title=${this.t("color_used")}
+            >${used.map((c) => html`<button class="fp3d-swatch" style=${`background:${c}`} title=${c} aria-label=${c} @click=${() => set(c)}></button>`)}</span
+          >`
+        : nothing}
+    </div>`;
+  }
+
   private updateFreeWall(patch: Partial<FreeWall>): void {
     const id = this._wallId;
     if (!id) return;
@@ -2730,11 +2763,7 @@ export class Fp3dEditor extends LitElement {
         ${this.len(this.t("wall_length"), length, setLength, 0.01, 0.1)}
         ${this.len(this.t("wall_thickness"), w.thickness ?? this._doc.settings.wall_interior, (v) => this.updateFreeWall({ thickness: Math.min(1, Math.max(0.02, v)) }), 0.01, 0.02)}
         ${this.len(this.t("wall_height"), w.height ?? this.floor?.height ?? 2.5, (v) => this.updateFreeWall({ height: v >= (this.floor?.height ?? 2.5) - 0.005 ? null : Math.max(0.05, v) }), 0.05, 0.05)}
-        <label class="fp3d-wide" title=${this.t("wall_color_hint")}
-          >${this.t("wall_color")}
-          <input type="color" .value=${w.color ?? "#131d31"} @input=${(e: Event) => this.updateFreeWall({ color: (e.target as HTMLInputElement).value })} />
-          ${admin && w.color ? html`<button class="fp3d-btn" title=${this.t("wall_color_reset")} @click=${() => this.updateFreeWall({ color: null })}>↺</button>` : nothing}</label
-        >
+        ${this.colorField(this.t("wall_color"), w.color ?? null, "#131d31", (v) => this.updateFreeWall({ color: v }), this.t("wall_color_hint"))}
       </div>
       ${admin
         ? html`<div class="fp3d-actions">
@@ -6077,11 +6106,7 @@ export class Fp3dEditor extends LitElement {
                 >`
               : nothing}
             ${(part === undefined || part === 0) && h !== 0
-              ? html`<label class="fp3d-wide fp3d-split-row" title=${this.t("wall_color_hint")}
-                  >${this.t("wall_color")}
-                  <input type="color" .value=${room.wall_colors?.[i] ?? "#131d31"} @input=${(e: Event) => setColor(i, (e.target as HTMLInputElement).value)} />
-                  ${this.isAdmin && room.wall_colors?.[i] ? html`<button class="fp3d-btn" title=${this.t("wall_color_reset")} @click=${() => setColor(i, null)}>↺</button>` : nothing}</label
-                >`
+              ? this.colorField(this.t("wall_color"), room.wall_colors?.[i] ?? null, "#131d31", (v) => setColor(i, v), this.t("wall_color_hint"))
               : nothing}
             ${part !== undefined && part > 0 && (room.wall_splits?.[i] ?? []).some((d) => Math.abs(d - starts[part]) < 1e-3)
               ? html`<span class="fp3d-wide fp3d-split-row"
@@ -10424,6 +10449,7 @@ export class Fp3dEditor extends LitElement {
             ${FLOOR_MATERIALS.map((m) => html`<option value=${m} ?selected=${m === room.floor_material}>${this.t(`mat_${m}` as I18nKey)}</option>`)}
           </select></label
         >
+        ${this.colorField(this.t("floor_color"), room.floor_color ?? null, "#0e1629", (v) => this.updateRoom({ floor_color: v }), this.t("floor_color_hint"))}
         ${rect
           ? html`${this.len(this.t("x"), b.x0, (v) => this.setRect("x", v))} ${this.len(this.t("z"), b.z0, (v) => this.setRect("z", v))}
             ${this.len(this.t("width"), b.x1 - b.x0, (v) => this.setRect("w", v), 0.01, 0.05)}
@@ -10926,6 +10952,7 @@ export class Fp3dEditor extends LitElement {
         ${this.len(this.t("depth"), f.d, (v) => this.updateFurniture({ d: Math.max(0.01, v) }), 0.01, 0.01)}
         ${this.len(this.t("height_m"), f.h, (v) => this.updateFurniture({ h: Math.max(0.005, v) }), 0.01, 0)}
         ${this.num(this.t("rotation"), f.rotation, (v) => this.updateFurniture({ rotation: ((v % 360) + 360) % 360 }), 1)}
+        ${isLamp(f.type) ? nothing : this.colorField(this.t("furn_color"), f.color ?? null, "#172238", (v) => this.updateFurniture({ color: v }), this.t("furn_color_hint"))}
         ${isLamp(f.type)
           ? nothing
           : html`<label class="fp3d-check" title=${this.t("furn_mirror_hint")}
@@ -15057,6 +15084,45 @@ export class Fp3dEditor extends LitElement {
         white-space: nowrap;
         padding-left: 10px;
         padding-right: 10px;
+      }
+      .fp3d-colorfield {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+      .fp3d-colorfield > span:first-child {
+        flex: 1 1 100%;
+        font-size: 0.85em;
+        opacity: 0.8;
+      }
+      .fp3d-colorfield input[type="color"] {
+        width: 44px;
+        height: 32px;
+        padding: 0;
+        border: 1px solid var(--fp3d-line, rgba(255, 255, 255, 0.25));
+        border-radius: 6px;
+        background: none;
+      }
+      .fp3d-hex {
+        flex: 1 1 90px;
+        min-width: 0;
+        max-width: 140px;
+        font-family: monospace;
+      }
+      .fp3d-swatches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        flex: 1 1 100%;
+      }
+      .fp3d-swatch {
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
+        cursor: pointer;
       }
       .fp3d-edge-height > .fp3d-split-row {
         flex: 1 1 100%;

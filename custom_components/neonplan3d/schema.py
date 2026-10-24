@@ -66,6 +66,8 @@ ROOM_SCHEMA = vol.Schema(
         vol.Required("area_id"): vol.Any(None, vol.All(str, vol.Length(max=255))),
         vol.Required("points"): vol.All([_POINT], vol.Length(min=3, max=MAX_POINTS)),
         vol.Required("floor_material"): vol.All(str, vol.Length(max=32)),
+        # own colour of the floor (None = the material's colour)
+        vol.Optional("floor_color"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
         # the camera this room opens with when it is tapped (None = framed from above)
         vol.Optional("start_view", default=None): vol.Any(None, START_VIEW_SCHEMA),
         # entities shown in the room's panel although they are not in the plan
@@ -300,6 +302,8 @@ FURNITURE_SCHEMA = vol.Schema(
         vol.Optional("awning_invert", default=False): bool,
         # household: a waste bin's kind and colours, its calendar (Haushalt Pro); a mailbox's emptying door
         vol.Optional("bin_kind"): vol.Any(None, vol.In(WASTE_KINDS)),
+        # own body colour in the neon look (None = the look's own colours)
+        vol.Optional("color"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
         vol.Optional("bin_color"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
         vol.Optional("bin_lid"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
         vol.Optional("bin_source"): vol.Any(None, vol.All(str, vol.Length(max=255))),

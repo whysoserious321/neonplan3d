@@ -1,4 +1,4 @@
-// Geometry primitives shared by walls, furniture and opening parts: merged vertex-coloured buffers
+﻿// Geometry primitives shared by walls, furniture and opening parts: merged vertex-coloured buffers
 // with a per-vertex fold value (see build.ts), line buffers and vertical prisms.
 
 import { BufferGeometry, Color, Float32BufferAttribute, ShapeUtils, Vector2 } from "three";
@@ -18,7 +18,7 @@ export const ALWAYS = -1;
 export const CUT_OFFSET = 16;
 export const LOWER_OFFSET = 32;
 export const CAP_OFFSET = 48;
-/** Fold kind 4: the part of a tall piece of furniture above the cut height – folds away with the walls. */
+/** Fold kind 4: the part of a tall piece of furniture above the cut height â€“ folds away with the walls. */
 export const FURN_OFFSET = 64;
 
 export class GeoBuffer {
@@ -210,6 +210,29 @@ export function shade(hex: number, k: number): Color {
   c.g = Math.min(1, c.g);
   c.b = Math.min(1, c.b);
   return c;
+}
+
+/** Brightness (linear) of a neon furniture body such as 0x172238: an own colour shows at its picked value there. */
+export const BODY_LEVEL = 0.04;
+
+/** The dark navy surfaces of the neon look (walls, floors, furniture bodies), as the theme shader sees them. */
+export function isNavySurface(r: number, g: number, b: number): boolean {
+  return Math.max(r, g, b) < 0.42 && b >= g && g < b * 0.45 && r < b * 0.5;
+}
+
+/** Triangles `from`..`to` of `buf`: the navy surfaces take the colour `hex` and keep their shading. */
+export function tintNavy(buf: GeoBuffer, from: number, to: number, hex: number): void {
+  const own = new Color(hex);
+  for (let i = from * 9; i < Math.min(to * 9, buf.c.length); i += 3) {
+    const r = buf.c[i];
+    const g = buf.c[i + 1];
+    const b = buf.c[i + 2];
+    if (!isNavySurface(r, g, b)) continue;
+    const k = Math.min(Math.max(r, g, b) / BODY_LEVEL, 2);
+    buf.c[i] = Math.min(1, own.r * k);
+    buf.c[i + 1] = Math.min(1, own.g * k);
+    buf.c[i + 2] = Math.min(1, own.b * k);
+  }
 }
 
 /** Twice the signed area of a ring in (x, z): positive when counter-clockwise. */
