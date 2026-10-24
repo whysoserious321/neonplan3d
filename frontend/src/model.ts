@@ -61,6 +61,8 @@ export interface Room {
    * into parts of their own (each with its own height), e.g. a 2.5 m wall next to a 1.7 m one in line.
    */
   wall_splits?: (number[] | null)[];
+  /** Own colour of the wall on each edge ("#rrggbb", index = edge); null = the look's wall colour. */
+  wall_colors?: (string | null)[];
 }
 
 export type OpeningType = "door" | "window" | "garage";
@@ -396,6 +398,8 @@ export interface FreeWall {
   thickness?: number | null;
   /** Height in metres (null = full floor height), e.g. a half-height wall or a counter. */
   height?: number | null;
+  /** Own colour ("#rrggbb"); null = the look's wall colour. */
+  color?: string | null;
 }
 
 /** "custom": the roof is made of sections (wings of an L- or T-shaped house, a barn, a lean-to …). */

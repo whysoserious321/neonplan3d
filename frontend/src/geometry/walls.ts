@@ -39,6 +39,8 @@ export interface Wall {
   height?: number;
   /** A sloping top: the heights h0 at plan point p and h1 at q, straight in between (D569). */
   slope?: WallSlope;
+  /** Own colour ("#rrggbb"); undefined = the look's wall colour. */
+  color?: string;
 }
 
 export interface WallSlope {
@@ -85,6 +87,7 @@ interface Draft {
   free?: string;
   height?: number;
   slope?: WallSlope;
+  color?: string;
   a: number;
   b: number;
   left: number;
@@ -244,6 +247,14 @@ export function generateWalls(rooms: readonly Room[], options: WallOptions, free
     const slope = slopeOf(list);
     return slope ? { height: Math.max(slope.h0, slope.h1), slope } : { height: heightOf(list) };
   };
+  // an own colour set on a room edge; a shared wall takes the first one set of its two rooms
+  const colorOf = (list: Segment[]): { color?: string } => {
+    for (const s of list) {
+      const c = rooms.find((r) => r.id === s.room)?.wall_colors?.[s.edge];
+      if (typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c)) return { color: c };
+    }
+    return {};
+  };
   const open: [string, string][] = [];
   let drafts: Draft[] = [];
   for (const g of groups.values()) {
@@ -268,6 +279,7 @@ export function generateWalls(rooms: readonly Room[], options: WallOptions, free
         roomRight: partner.room,
         sources: [src(first), src(partner)],
         ...withSlope([first, partner]),
+        ...colorOf([first, partner]),
       });
     } else {
       drafts.push({
@@ -280,6 +292,7 @@ export function generateWalls(rooms: readonly Room[], options: WallOptions, free
         roomRight: null,
         sources: [src(first)],
         ...withSlope([first]),
+        ...colorOf([first]),
       });
     }
   }
@@ -317,7 +330,7 @@ export function generateWalls(rooms: readonly Room[], options: WallOptions, free
     const room = rooms.find((r) => r.points.length >= 3 && pointInPolygon(mid, r.points))?.id ?? null;
     const half = (w.thickness ?? options.interior) / 2;
     const height = typeof w.height === "number" && w.height > 0 ? w.height : undefined;
-    drafts.push({ free: w.id, a: ia, b: ib, left: half, right: half, exterior: false, roomLeft: room, roomRight: room, sources: [], height });
+    drafts.push({ free: w.id, a: ia, b: ib, left: half, right: half, exterior: false, roomLeft: room, roomRight: room, sources: [], height, ...(typeof w.color === "string" && /^#[0-9a-f]{6}$/i.test(w.color) ? { color: w.color } : {}) });
   });
 
   // 5. merge collinear runs through nodes where nothing else meets (never across a split point)
@@ -346,6 +359,7 @@ export function generateWalls(rooms: readonly Room[], options: WallOptions, free
       ...(w.free ? { free: w.free } : {}),
       ...(w.height !== undefined ? { height: w.height } : {}),
       ...(w.slope ? { slope: w.slope } : {}),
+      ...(w.color ? { color: w.color } : {}),
     };
   });
   return { walls, warnings: [...new Set(warnings)], open };
@@ -388,6 +402,7 @@ function mergeCollinear(drafts: Draft[], verts: Vec2[], fixed: ReadonlySet<numbe
         w1.free ||
         w2.free ||
         w1.height !== w2.height ||
+        w1.color !== w2.color ||
         !!w1.slope ||
         !!w2.slope ||
         w1.exterior !== w2.exterior ||

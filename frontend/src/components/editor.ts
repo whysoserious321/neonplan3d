@@ -1760,6 +1760,7 @@ export class Fp3dEditor extends LitElement {
           // both halves of the split edge keep its wall height
           if (target.wall_heights) target.wall_heights.splice(i + 1, 0, target.wall_heights[i] ?? null);
           if (target.wall_thickness) target.wall_thickness.splice(i + 1, 0, target.wall_thickness[i] ?? null);
+          if (target.wall_colors) target.wall_colors.splice(i + 1, 0, target.wall_colors[i] ?? null);
           const first = Math.hypot(mid[0] - a[0], mid[1] - a[1]);
           if (target.wall_slopes) {
             const sl = target.wall_slopes[i] ?? null;
@@ -2729,6 +2730,11 @@ export class Fp3dEditor extends LitElement {
         ${this.len(this.t("wall_length"), length, setLength, 0.01, 0.1)}
         ${this.len(this.t("wall_thickness"), w.thickness ?? this._doc.settings.wall_interior, (v) => this.updateFreeWall({ thickness: Math.min(1, Math.max(0.02, v)) }), 0.01, 0.02)}
         ${this.len(this.t("wall_height"), w.height ?? this.floor?.height ?? 2.5, (v) => this.updateFreeWall({ height: v >= (this.floor?.height ?? 2.5) - 0.005 ? null : Math.max(0.05, v) }), 0.05, 0.05)}
+        <label class="fp3d-wide" title=${this.t("wall_color_hint")}
+          >${this.t("wall_color")}
+          <input type="color" .value=${w.color ?? "#131d31"} @input=${(e: Event) => this.updateFreeWall({ color: (e.target as HTMLInputElement).value })} />
+          ${admin && w.color ? html`<button class="fp3d-btn" title=${this.t("wall_color_reset")} @click=${() => this.updateFreeWall({ color: null })}>↺</button>` : nothing}</label
+        >
       </div>
       ${admin
         ? html`<div class="fp3d-actions">
@@ -5034,6 +5040,7 @@ export class Fp3dEditor extends LitElement {
       // the edge starting at the removed corner goes away; the one before it keeps its height
       if (target.wall_heights) target.wall_heights.splice(index, 1);
       if (target.wall_thickness) target.wall_thickness.splice(index, 1);
+      if (target.wall_colors) target.wall_colors.splice(index, 1);
       if (target.wall_slopes) {
         target.wall_slopes.splice(index, 1);
         target.wall_slopes[(index - 1 + target.points.length) % target.points.length] = null;
@@ -6009,6 +6016,15 @@ export class Fp3dEditor extends LitElement {
         list[edge] = v;
         r.wall_thickness = list.every((t) => t === null) ? undefined : list;
       });
+    const setColor = (edge: number, v: string | null) =>
+      this.change((_, f) => {
+        const r = f.rooms.find((x) => x.id === room.id);
+        if (!r) return;
+        const list = (r.wall_colors ?? []).slice(0, r.points.length);
+        while (list.length < r.points.length) list.push(null);
+        list[edge] = v;
+        r.wall_colors = list.every((c) => c === null) ? undefined : list;
+      });
     return html`<div class="fp3d-edge-box">
       <h4>${this.t("wall_heights")}</h4>
       ${room.points.flatMap((a, i) => {
@@ -6058,6 +6074,13 @@ export class Fp3dEditor extends LitElement {
                     setThick(i, Math.abs(t - def) < 0.0005 ? null : t);
                   }, 0.01, 0.02)}
                   ${this.isAdmin && room.wall_thickness?.[i] != null ? html`<button class="fp3d-btn" title=${this.t("wall_thickness_reset")} @click=${() => setThick(i, null)}>↺</button>` : nothing}</span
+                >`
+              : nothing}
+            ${(part === undefined || part === 0) && h !== 0
+              ? html`<label class="fp3d-wide fp3d-split-row" title=${this.t("wall_color_hint")}
+                  >${this.t("wall_color")}
+                  <input type="color" .value=${room.wall_colors?.[i] ?? "#131d31"} @input=${(e: Event) => setColor(i, (e.target as HTMLInputElement).value)} />
+                  ${this.isAdmin && room.wall_colors?.[i] ? html`<button class="fp3d-btn" title=${this.t("wall_color_reset")} @click=${() => setColor(i, null)}>↺</button>` : nothing}</label
                 >`
               : nothing}
             ${part !== undefined && part > 0 && (room.wall_splits?.[i] ?? []).some((d) => Math.abs(d - starts[part]) < 1e-3)

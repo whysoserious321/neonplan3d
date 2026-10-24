@@ -1,4 +1,4 @@
-// The simple import format (docs/plan-format.md): what a person, a script or an AI writes easily – floors with rooms
+﻿// The simple import format (docs/plan-format.md): what a person, a script or an AI writes easily â€“ floors with rooms
 // as outlines, walls, doors and windows by their middle, furniture by kind and size. The importer turns it into a
 // proper plan. And the check for complete NeonPlan plans that were written by hand or by an AI: broken parts are
 // repaired or left out, with a warning for each.
@@ -116,7 +116,7 @@ export function repairPlan(input: Building): { building: Building; warnings: War
       roomIds.set(r.id, id);
       // the edges may have changed with tidying: per-edge lists only fit when the count stayed
       const same = pts.length === r.points?.length;
-      return [{ ...r, id, name: String(r.name ?? ""), area_id: r.area_id ?? null, points: pts, floor_material: r.floor_material ?? "wood", ...(same ? {} : { wall_heights: undefined, wall_thickness: undefined, wall_splits: undefined }) }];
+      return [{ ...r, id, name: String(r.name ?? ""), area_id: r.area_id ?? null, points: pts, floor_material: r.floor_material ?? "wood", ...(same ? {} : { wall_heights: undefined, wall_thickness: undefined, wall_splits: undefined, wall_colors: undefined }) }];
     });
     if (dropped) warnings.push({ code: "rooms_skipped", floor: floor.name, n: dropped });
     let bad = 0;

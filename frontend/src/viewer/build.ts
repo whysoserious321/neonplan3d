@@ -1,4 +1,4 @@
-// Builds merged, vertex-coloured geometry for one floor: room floors with material patterns, walls
+﻿// Builds merged, vertex-coloured geometry for one floor: room floors with material patterns, walls
 // with door and window openings, edge lines and baked wall shadows.
 //
 // Walls are grouped into buckets by the direction they face. Every vertex carries a "fold" value and a
@@ -21,7 +21,7 @@ import { mountBase, packItem } from "../packs.ts";
 import { pushOutdoor } from "./outdoor.ts";
 import { pushModules } from "./roof.ts";
 import type { RoofFace } from "../solar.ts";
-import { cutAbove, cutLinesAbove, FURN_OFFSET, ALWAYS, CAP_OFFSET, CUT_OFFSET, EDGE_BASE, EDGE_CUT, EDGE_SOFT, EDGE_TOP, GeoBuffer, LineBuffer, LOWER_OFFSET, pushPrism, triangulate } from "./geo.ts";
+import { cutAbove, cutLinesAbove, FURN_OFFSET, ALWAYS, CAP_OFFSET, CUT_OFFSET, EDGE_BASE, EDGE_CUT, EDGE_SOFT, EDGE_TOP, GeoBuffer, LineBuffer, LOWER_OFFSET, pushPrism, shade, triangulate } from "./geo.ts";
 
 export { ALWAYS, CUT_OFFSET, GeoBuffer, LineBuffer, pushPrism, shade } from "./geo.ts";
 
@@ -301,6 +301,10 @@ export function buildFloorGeometry(
     const ax = unit([wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]]);
     const list = (spans.get(wall) ?? []).sort((p, q) => p.s0 - q.s0);
     const H = wallHeight(wall, floor.height);
+    // an own colour of this wall (its top a little lighter), else the look's wall colour
+    const own = wall.color ? parseInt(wall.color.slice(1), 16) : null;
+    const wallSide = own ?? NEON.wall;
+    const wallTopColor = own !== null ? shade(own, 1.25).getHex() : NEON.wallTop;
     // pieces along the axis, cut at every opening edge: each piece leaves out all the openings above it
     // (two windows one above the other, a window over a door), the wall fills what remains
     const pieces: { t0: number; t1: number; ranges: [number, number][] }[] = [];
@@ -372,9 +376,9 @@ export function buildFloorGeometry(
           // the top face at the cut height is only seen while the wall is cut
           const topFold = y1 > cut + 1e-6 ? CAP_OFFSET + b : LOWER_OFFSET + b;
           const capped = sloped && roofTop < cut ? (x: number, z: number) => Math.min(cut, topOf(x, z)) : Math.min(y1, cut);
-          pushPrism(wallBuf, poly, y0, capped, NEON.wall, NEON.wallTop, { aoFrom: 0, bottom: lintel, fold: LOWER_OFFSET + b, topFold, skipSide });
+          pushPrism(wallBuf, poly, y0, capped, wallSide, wallTopColor, { aoFrom: 0, bottom: lintel, fold: LOWER_OFFSET + b, topFold, skipSide });
         }
-        if (y1 > cut + 1e-6 && roofTop > cut + 1e-6) pushPrism(wallBuf, poly, Math.max(y0, cut), sloped ? topOf : y1, NEON.wall, NEON.wallTop, { aoFrom: 0, fold: b, bottom: lintel && y0 >= cut, skipSide });
+        if (y1 > cut + 1e-6 && roofTop > cut + 1e-6) pushPrism(wallBuf, poly, Math.max(y0, cut), sloped ? topOf : y1, wallSide, wallTopColor, { aoFrom: 0, fold: b, bottom: lintel && y0 >= cut, skipSide });
       }
     }
   }
@@ -520,7 +524,7 @@ export function clipAlong(poly: Vec2[], origin: Vec2, axis: Vec2, t0: number, t1
   return out;
 }
 
-/** Sutherland–Hodgman against one half-plane (keeps d(p) >= 0). */
+/** Sutherlandâ€“Hodgman against one half-plane (keeps d(p) >= 0). */
 function clipHalf(poly: Vec2[], d: (p: Vec2) => number): Vec2[] {
   const out: Vec2[] = [];
   for (let i = 0; i < poly.length; i++) {
@@ -706,7 +710,7 @@ export function stairHoleParts(floors: readonly Floor[], floor: Floor): Vec2[][]
   const stairs = below.furniture
     .filter((f) => (STAIR_TYPES.has(f.type) || packItem(f.type)?.hole) && below.elevation + f.h >= floor.elevation - 0.3)
     .map(furnitureFootprint);
-  // overlapping openings become one outline (an L-shaped stairwell made of two) – after cutting, room by room
+  // overlapping openings become one outline (an L-shaped stairwell made of two) â€“ after cutting, room by room
   return [...own, ...stairs];
 }
 

@@ -81,6 +81,11 @@ ROOM_SCHEMA = vol.Schema(
             [vol.Any(None, vol.All([vol.All(vol.Coerce(float), vol.Range(min=0.05, max=200))], vol.Length(max=16)))],
             vol.Length(max=MAX_POINTS),
         ),
+        # own colour of the wall on each edge (None = the look's wall colour)
+        vol.Optional("wall_colors"): vol.All(
+            [vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$"))],
+            vol.Length(max=MAX_POINTS),
+        ),
         # ceiling height of the room (None = the floor height)
         vol.Optional("ceiling_height"): vol.Any(None, vol.All(vol.Coerce(float), vol.Range(min=1, max=30))),
         # thickness of the wall on each edge in m (None = the building's exterior / interior thickness)
@@ -696,6 +701,8 @@ FREE_WALL_SCHEMA = vol.Schema(
         vol.Required("b"): _POINT,
         vol.Optional("thickness", default=None): vol.Any(None, vol.All(vol.Coerce(float), vol.Range(min=0.02, max=1))),
         vol.Optional("height", default=None): vol.Any(None, vol.All(vol.Coerce(float), vol.Range(min=0.05, max=20))),
+        # own colour of this wall (None = the look's wall colour)
+        vol.Optional("color", default=None): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
     },
     extra=vol.ALLOW_EXTRA,
 )
