@@ -1,4 +1,4 @@
-// Visual editor of the dashboard card: Home Assistant shows it in the card dialog, so nobody has to
+﻿// Visual editor of the dashboard card: Home Assistant shows it in the card dialog, so nobody has to
 // write YAML. It follows Home Assistant's colours (the dialog is light or dark with the user's theme).
 
 import { css, html, LitElement, nothing } from "lit";
@@ -326,6 +326,11 @@ export class Floorplan3dCardEditor extends LitElement {
           >${this.t("accent")}
           <input type="color" .value=${this._config.accent ?? "#37e0ff"} @input=${(e: Event) => this.set("accent", (e.target as HTMLInputElement).value)} />
           ${this._config.accent ? html`<button type="button" class="link" @click=${() => this.set("accent", undefined)}>${this.t("accent_reset")}</button>` : nothing}
+        </label>
+        <label class="field"
+          >${this.t("fill")}
+          <input type="color" .value=${this._config.neon_fill ?? "#172238"} @input=${(e: Event) => this.set("neon_fill", (e.target as HTMLInputElement).value)} />
+          ${this._config.neon_fill ? html`<button type="button" class="link" @click=${() => this.set("neon_fill", undefined)}>${this.t("fill_reset")}</button>` : nothing}
         </label>
         ${this.select("walls", "card_walls", [["auto", "walls_auto"], ["cut", "walls_cut"]], v.walls)}
         ${this.select("quality", "quality", [["auto", "quality_auto"], ["low", "quality_low"], ["high", "quality_high"]], v.quality)}

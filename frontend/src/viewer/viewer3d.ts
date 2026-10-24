@@ -71,7 +71,7 @@ import { buildRoof, type RoofWindowState } from "./roof.ts";
 import { GROUND, groundFace, groundFloor, roofFaces, roofWindowRoom, wallFaces } from "../solar.ts";
 import { buildSolarLive, solarLiveMaterial, writeSolarLevels, type SolarLive } from "./solar-live.ts";
 import { buildPools, disposePools, type PoolPiece } from "./pool-water.ts";
-import { accentOnUniform, accentUniform, parseAccent, lineBlending, themed, themeIndex, type Theme, type ThemeUniform } from "./theme.ts";
+import { accentOnUniform, accentUniform, fillOnUniform, fillUniform, parseAccent, lineBlending, themed, themeIndex, type Theme, type ThemeUniform } from "./theme.ts";
 
 export type { Theme } from "./theme.ts";
 import { ALWAYS, DEG, GeoBuffer, LineBuffer, pushPrism, triangulate } from "./geo.ts";
@@ -1397,6 +1397,16 @@ export class FloorplanViewer {
     if (on === accentOnUniform.value && (!rgb || accentUniform.value.equals(new Vector3(...rgb)))) return;
     accentOnUniform.value = on;
     if (rgb) accentUniform.value.set(...rgb);
+    this.invalidate();
+  }
+
+  /** A fill colour of the user's choice for walls, floors and furniture in the neon look ("#rrggbb"), null for the stock navy. */
+  setFill(hex: string | null): void {
+    const rgb = parseAccent(hex);
+    const on = rgb ? 1 : 0;
+    if (on === fillOnUniform.value && (!rgb || fillUniform.value.equals(new Vector3(...rgb)))) return;
+    fillOnUniform.value = on;
+    if (rgb) fillUniform.value.set(...rgb);
     this.invalidate();
   }
 

@@ -195,6 +195,7 @@ export class Fp3dView3d extends LitElement {
     clock: { attribute: false },
     _clockTick: { state: true },
     accent: { attribute: false },
+    fill: { attribute: false },
     packs: { attribute: false },
     showEnergy: { attribute: false },
     flows: { attribute: false },
@@ -318,6 +319,8 @@ export class Fp3dView3d extends LitElement {
   private clockTimer: ReturnType<typeof setInterval> | undefined;
   /** Accent colour for the neon look ("#rrggbb"), null for the stock cyan. */
   declare accent: string | null;
+  /** Fill colour of walls, floors and furniture in the neon look ("#rrggbb"), null for the stock navy. */
+  declare fill: string | null;
   /** Show the energy values at the top (cards can switch them off). */
   declare showEnergy: boolean;
   /** Power flow lines fixed on or off (cards); null: the viewer's own toggle decides. */
@@ -598,6 +601,7 @@ export class Fp3dView3d extends LitElement {
     this.clock = null;
     this._clockTick = 0;
     this.accent = null;
+    this.fill = null;
     this.furnish = false;
     this.trail = false;
     this.weather = true;
@@ -849,6 +853,7 @@ export class Fp3dView3d extends LitElement {
       this.viewer.setAngleLock(this.angleLock);
       this.viewer.setTheme(this.effectiveTheme());
       this.viewer.setAccent(this.accent ?? null);
+      this.viewer.setFill(this.fill ?? null);
       this.viewer.setFurnishMode(this.furnish);
       this.viewer.setSurfaceGrab(this.surfaceGrab ?? null);
       this.viewer.setFurnishTypes(this.furnishTypes ?? null);
@@ -947,6 +952,7 @@ export class Fp3dView3d extends LitElement {
     if (changed.has("floorStack")) v.setFloorStack(this.floorStack);
     if (changed.has("theme")) v.setTheme(this.effectiveTheme());
     if (changed.has("accent")) v.setAccent(this.accent ?? null);
+    if (changed.has("fill")) v.setFill(this.fill ?? null);
     if (changed.has("surfaceGrab")) v.setSurfaceGrab(this.surfaceGrab ?? null);
     if (changed.has("furnishTypes")) v.setFurnishTypes(this.furnishTypes ?? null);
     if (changed.has("furnish")) {

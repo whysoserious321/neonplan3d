@@ -1,4 +1,4 @@
-// Configuration of the dashboard card, shared by the card and its visual editor (a bundle of its own).
+﻿// Configuration of the dashboard card, shared by the card and its visual editor (a bundle of its own).
 
 import type { StartView } from "./model.ts";
 import type { Quality, WallMode } from "./viewer/viewer3d.ts";
@@ -57,6 +57,8 @@ export interface CardConfig {
   clock?: ClockPos;
   /** Accent colour for the neon look and the card's chips ("#rrggbb"); leave out for the stock cyan. */
   accent?: string;
+  /** Fill colour of walls, floors and furniture in the neon look ("#rrggbb"); leave out for the stock navy. */
+  neon_fill?: string;
   /** Energy values at the top (default true). */
   energy?: boolean;
   /** Power flow lines always on or off; without it the card has its own switch. */
@@ -88,9 +90,9 @@ export interface CardConfig {
   alerts?: boolean;
   /** Jump to the room of a new warning (default false). */
   alert_jump?: boolean;
-  /** Kamera-Cockpit: the live director – the card shows by itself what happens (events chosen in the settings; default off). */
+  /** Kamera-Cockpit: the live director â€“ the card shows by itself what happens (events chosen in the settings; default off). */
   director?: boolean;
-  /** Voice control: a microphone button – "Show the living room" shows it, other sentences go to Assist (default off). */
+  /** Voice control: a microphone button â€“ "Show the living room" shows it, other sentences go to Assist (default off). */
   voice?: boolean;
   /** This card's screen name for Assist and the service `neonplan3d.ask`: a sentence that names a screen is only for it. */
   screen?: string;
@@ -102,7 +104,7 @@ export interface CardConfig {
   weather?: boolean;
   /** The weather entity to use (default: the first one). */
   weather_entity?: string;
-  /** Haushalt Pro: the glass card "Today in the household" (bins, post, appliances, plants …; default on). */
+  /** Haushalt Pro: the glass card "Today in the household" (bins, post, appliances, plants â€¦; default on). */
   household_card?: boolean;
   /** Pro: a "Time travel" button replays the last 24 hours in the card (read-only). */
   time_travel?: boolean;
@@ -112,7 +114,7 @@ export interface CardConfig {
   time_travel_speed?: 60 | 360 | 900 | 3600 | 14400;
   /** Kiosk: seconds without a touch after which the card returns to its start view (0 = never). */
   idle_return?: number;
-  /** Kiosk: dim at night – "off", "sun" (sun.sun below the horizon) or a time range "22:00-06:00". */
+  /** Kiosk: dim at night â€“ "off", "sun" (sun.sun below the horizon) or a time range "22:00-06:00". */
   night?: string;
   /** Kiosk: after the idle return, turn the view slowly by itself until the next touch. */
   idle_orbit?: boolean;

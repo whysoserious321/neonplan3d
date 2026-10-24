@@ -1,4 +1,4 @@
-// Lovelace card (loaded automatically by the integration, no resource needed).
+﻿// Lovelace card (loaded automatically by the integration, no resource needed).
 
 import { zonesOf } from "./model.ts";
 import { confirmEntities } from "./devices.ts";
@@ -173,7 +173,7 @@ export class Floorplan3dCard extends LitElement {
 
   /**
    * Full screen and "fill the screen" follow the screen that is really visible: 100vh misses on some Android
-   * tablets (the HA app in landscape), and the dashboard header may be hidden (kiosk mode) – a black bar stayed (#344).
+   * tablets (the HA app in landscape), and the dashboard header may be hidden (kiosk mode) â€“ a black bar stayed (#344).
    */
   private readonly onViewport = () => {
     const vh = Math.round(window.visualViewport?.height ?? window.innerHeight);
@@ -368,6 +368,7 @@ clearTimeout(this.cleanTimer);
               .theme=${this._config?.theme ?? "neon"}
               .clock=${this._config?.clock ?? null}
               .accent=${this._config?.accent ?? null}
+              .fill=${this._config?.neon_fill ?? null}
               .showEnergy=${this._config?.energy ?? true}
               .flows=${this._config?.flows ?? null}
               .holograms=${this._config?.holograms ?? null}
@@ -437,7 +438,7 @@ clearTimeout(this.cleanTimer);
               ${canGoBack ? html`<button class="fp3d-chip" @click=${() => this.back()}>${t("back")}</button>` : nothing}
               ${c?.time_travel
                 ? html`<button class="fp3d-chip fp3d-tt-chip" aria-pressed=${tt} title=${t("tt_hint")} @click=${() => this.toggleTimeTravel()}>
-                    ${hasFeature("time_travel") ? "⏪" : "🔒"} ${t("tt_chip")}
+                    ${hasFeature("time_travel") ? "âª" : "ðŸ”’"} ${t("tt_chip")}
                   </button>`
                 : nothing}
               ${c?.camera_wall ? html`<button class="fp3d-chip" aria-pressed=${this._cameraWall} title=${t("camera_wall_hint")} @click=${() => (this._cameraWall = !this._cameraWall)}>${t("cameras_short")}</button>` : nothing}
@@ -468,12 +469,12 @@ clearTimeout(this.cleanTimer);
         ${this.tt.session ? html`<fp3d-time-bar .session=${this.tt.session}></fp3d-time-bar>` : nothing}
         ${c?.fullscreen_button && !this._clean && !(this._roomId && c.room_panel !== false)
           ? html`<button class="fp3d-card-full" title=${t(this._fullscreen ? "fullscreen_exit" : "fullscreen")} aria-label=${t(this._fullscreen ? "fullscreen_exit" : "fullscreen")} @click=${() => this.toggleFullscreen()}>
-              ${this._fullscreen ? "✕" : "⛶"}
+              ${this._fullscreen ? "âœ•" : "â›¶"}
             </button>`
           : nothing}
         ${c?.dashboard && !this._clean && !(this._roomId && c.room_panel !== false)
           ? html`<button class="fp3d-card-full fp3d-card-dash ${c.fullscreen_button ? "fp3d-card-dash-2" : ""}" title=${c.dashboard_label || c.dashboard} aria-label=${c.dashboard_label || c.dashboard} @click=${() => this.openDashboard(c.dashboard!)}>
-              ${c.dashboard_label ? html`<span>${c.dashboard_label}</span>` : "⌂"}
+              ${c.dashboard_label ? html`<span>${c.dashboard_label}</span>` : "âŒ‚"}
             </button>`
           : nothing}
       </div>

@@ -92,6 +92,7 @@ export class Floorplan3dPanel extends LitElement {
     _navWrap: { state: true },
     _optsOpen: { state: true },
     _accent: { state: true },
+    _fill: { state: true },
     _weather: { state: true },
     _director: { state: true },
     _micProbe: { state: true },
@@ -152,6 +153,8 @@ export class Floorplan3dPanel extends LitElement {
   private declare _optsOpen: boolean;
   /** Accent colour of the user's choice ("#rrggbb"), null for the stock cyan; remembered on this device. */
   private declare _accent: string | null;
+  /** Fill colour of walls, floors and furniture in the neon look ("#rrggbb"), null for the stock navy; remembered on this device. */
+  private declare _fill: string | null;
   /** Weather outside the house in 3D. */
   private declare _weather: boolean;
   /** Kamera-Cockpit: the live director works on this device (its own switch, default off). */
@@ -201,6 +204,8 @@ export class Floorplan3dPanel extends LitElement {
     this._clock = clock === "tl" || clock === "tr" || clock === "bl" || clock === "br" ? clock : "off";
     const accent = prefs.get("accent");
     this._accent = accent && /^#[0-9a-f]{6}$/i.test(accent) ? accent : null;
+    const fill = prefs.get("fill");
+    this._fill = fill && /^#[0-9a-f]{6}$/i.test(fill) ? fill : null;
     this._furnish = false;
     this._selFurniture = null;
     this._selDevice = null;
@@ -632,6 +637,30 @@ export class Floorplan3dPanel extends LitElement {
                       </button>`
                     : nothing}
                 </label>
+                <label class="fp3d-accent-pick" title=${this.t("fill_hint")}>
+                  <input
+                    type="color"
+                    .value=${this._fill ?? "#172238"}
+                    aria-label=${this.t("fill")}
+                    @input=${(e: Event) => {
+                      this._fill = (e.target as HTMLInputElement).value;
+                      prefs.set("fill", this._fill);
+                    }}
+                  />
+                  ${this._fill
+                    ? html`<button
+                        class="fp3d-accent-reset"
+                        title=${this.t("fill_reset")}
+                        aria-label=${this.t("fill_reset")}
+                        @click=${() => {
+                          this._fill = null;
+                          prefs.set("fill", "");
+                        }}
+                      >
+                        ↺
+                      </button>`
+                    : nothing}
+                </label>
               </div>
               <div class="fp3d-seg fp3d-quality" role="group" aria-label=${this.t("clock")} title=${this.t("clock")}>
                 <span class="fp3d-seg-label" aria-hidden="true">🕐</span>
@@ -989,6 +1018,7 @@ export class Floorplan3dPanel extends LitElement {
           .theme=${this._theme}
           .clock=${this._clock}
           .accent=${this._accent}
+          .fill=${this._fill}
           ?furnish=${this._furnish && !tt}
           .selectedFurniture=${this._selFurniture}
           @furniture-select=${(e: CustomEvent<{ id: string | null }>) => (this._selFurniture = e.detail.id)}

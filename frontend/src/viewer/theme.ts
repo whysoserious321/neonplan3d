@@ -19,6 +19,10 @@ export function themeIndex(theme: Theme): number {
 export const accentUniform = { value: new Vector3(0.22, 0.88, 1) };
 export const accentOnUniform = { value: 0 };
 
+/** The neon look's fill (walls, floors, furniture bodies): the stock dark navy, or a colour of the user's choice. */
+export const fillUniform = { value: new Vector3(0.09, 0.13, 0.22) };
+export const fillOnUniform = { value: 0 };
+
 /** "#rrggbb" to the 0–1 colour the shader uses, null for anything else. */
 export function parseAccent(hex: string | null | undefined): [number, number, number] | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex?.trim() ?? "");
@@ -31,11 +35,15 @@ const GLSL = `
 uniform int uTheme;
 uniform vec3 uAccent;
 uniform int uAccentOn;
+uniform vec3 uFill;
+uniform int uFillOn;
 vec3 fp3dThemed(vec3 c, bool line) {
   float mx = max(c.r, max(c.g, c.b));
   float mn = min(c.r, min(c.g, c.b));
   float sat = mx > 0.0 ? (mx - mn) / mx : 0.0;
   if (uTheme == 0) {
+    // an own fill: the dark navy surfaces (walls, floors, furniture bodies) take it and keep their shading
+    if (uFillOn == 1 && !line && mx < 0.42 && c.b >= c.g && c.g < c.b * 0.66 && c.r < c.b * 0.5) return min(uFill * (mx / 0.22), vec3(1.0));
     // an own accent: every line and every cyan surface takes it, as bright as it was
     if (uAccentOn == 1 && (line || (sat > 0.35 && c.r < c.g * 0.8 && c.b > c.g * 0.85 && c.g > c.b * 0.6))) return uAccent * mx;
     return c;
@@ -68,6 +76,8 @@ export function themed<T extends Material>(material: T, uniform: ThemeUniform, l
     shader.uniforms.uTheme = uniform;
     shader.uniforms.uAccent = accentUniform;
     shader.uniforms.uAccentOn = accentOnUniform;
+    shader.uniforms.uFill = fillUniform;
+    shader.uniforms.uFillOn = fillOnUniform;
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", `#include <common>\n${GLSL}`)
       .replace("#include <color_fragment>", `#include <color_fragment>\n  diffuseColor.rgb = fp3dThemed(diffuseColor.rgb, ${line ? "true" : "false"});`);
