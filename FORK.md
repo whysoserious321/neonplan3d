@@ -20,8 +20,8 @@ All colours are optional; with nothing set, the look is identical to upstream.
 | Global **fill** colour (walls, floors, furniture bodies; Neon look only) | ⚙ bar colour picker next to the accent picker (remembered per device, `prefs` key `fill`); card option `neon_fill: "#rrggbb"` (card editor field) | device pref / card config, no server storage |
 | **Wall colour** per room edge and per free wall | Editor → room → wall list, "Wall colour" field; free wall form | `Room.wall_colors?: (string\|null)[]` (index = edge), `FreeWall.color` |
 | **Floor colour** per room | Editor → room form, under "Material" | `Room.floor_color` |
-| **Furniture colour** per piece | Editor → furniture form, under "Rotation" (not for lamps) | `Furniture.color` |
-| **Glow colour** per lamp (replaces the light's colour; on/off and brightness still follow the light) | Editor → furniture form of a lamp, "Own glow colour" | `Furniture.glow_color` |
+| **Furniture colour** per piece; for a **lamp** the same field is "Own lamp colour" and recolours the lamp body (base, arm, housing), not the shade | Editor → furniture form, under "Rotation" | `Furniture.color` (one field for both) |
+| **Glow colour** per lamp (replaces the light's colour; on/off and brightness still follow the light; the shade only, the body keeps its own colour above) | Editor → furniture form of a lamp, "Own glow colour" | `Furniture.glow_color` |
 | **Colour field** with text box (accepts `#rrggbb`, `rrggbb`, `r, g, b`, `rgb(...)`) and swatches of colours already used in the plan | all of the above in the editor | – |
 
 All stored colours are `#rrggbb` strings or null/absent.
@@ -48,10 +48,16 @@ All stored colours are `#rrggbb` strings or null/absent.
 - `custom_components/neonplan3d/schema.py` – validates `wall_colors`, `floor_color`, `Furniture.color`,
   `FreeWall.color` (`^#[0-9a-fA-F]{6}$`). (The schemas use `extra=vol.ALLOW_EXTRA`, so unknown keys survive anyway.)
 - `frontend/build.mjs` – size budgets raised a little: `neonplan3d.js` 692 KB, `neonplan3d-3d.js` 816 KB,
-  `neonplan3d-card-editor.js` 271 KB. `neonplan3d-editor.js` is tight (about 928 of 930 KB): raise its budget with a note
+  `neonplan3d-card-editor.js` 271 KB. `neonplan3d-editor.js` is tight (929.2 of 930 KB): raise its budget with a note
   if a rebase pushes it over.
 - `devices.ts` `overrideGlowColor()` (applied in `view3d.ts` after `onlyColor()`).
-- Tests: `frontend/src/glow-color.test.ts`, `frontend/src/fill.test.ts`, `walls-color.test.ts`, `color-input.test.ts`.
+- Lamp body colour: lamps are **not** built in `build.ts` (it skips `isLamp`); the viewer draws them live in
+  `viewer3d.ts` `buildLamps()` into one lamp mesh. `view3d.ts` `lampMarker()` passes `Furniture.color` as
+  `DeviceMarker.bodyColor`; `buildLamps()` calls `tintNavy()` on each lamp's triangle range right after the model is
+  pushed (the shade has the green sentinel colour, which `isNavySurface()` ignores, so it stays recolourable) and adds
+  `bodyColor` to `shapeSig` so a colour change rebuilds the mesh.
+- Tests: `frontend/src/glow-color.test.ts`, `lamp-color.test.ts`, `fill.test.ts`, `walls-color.test.ts`,
+  `color-input.test.ts`.
 
 ### Colour maths (easy to get wrong)
 
@@ -70,13 +76,17 @@ Furniture is never a mesh: an item is at most 60 `box`/`cyl`/`loft` parts with f
 `docs/packs.md`. Only packs signed with a key in `PACK_PUBLIC_KEYS` import.
 
 - **Key:** the fork owner's key `36b12a7e9997` is in `PACK_PUBLIC_KEYS` **and** `STUDIO_KEYS` (`packs.py`, marked
-  `FORK custom-fill`), so it can only sign packs whose id starts with `studio.` and that carry no `features` or `module`
+  `FORK custom-fill`; the marker text still says custom-fill, the branch has been renamed), so it can only sign packs whose id starts with `studio.` and that carry no `features` or `module`
   (it cannot unlock Pro). The private key is `%USERPROFILE%\.neonplan3d\own-pack-key.pem` (outside the repo, back it up;
   if it is lost, make a new one with `python tools/fp3dpack.py keygen KEYFILE` and add its line to both places).
   Backend only: deploy the integration folder, restart HA. A HACS/upstream update overwrites `packs.py`.
-- **Workflow:** model in Fusion → export OBJ (or GLB) → `python custom_objects/mesh2pack.py model.obj --id studio.NAME --name "…"
-  --publisher … [flags]` → `python tools/fp3dpack.py sign X.json --key KEY` → `verify` → Extensions → Import
-  furniture pack. A higher `release` in the JSON replaces an installed pack of the same id.
+- **Workflow:** model in Fusion → export OBJ (or GLB) into `custom_objects/models/` → `python custom_objects/mesh2pack.py
+  [model.obj] [flags]`. With no arguments it converts `models/guitar_test.obj` (id `studio.<file name>`, name from the
+  file name, publisher `Me`, Z-up), writes `custom_objects/packs/<name>.json`, then **signs and verifies it itself**
+  with `~/.neonplan3d/own-pack-key.pem` (`--key`, `--no-sign`) and prints the flags it used. Import the `.fp3dpack` via
+  NeonPlan **Extensions → Import furniture pack**. A higher `release` in the JSON replaces an installed pack of the same
+  id. Packs are committed in `custom_objects/packs/` (not `private/`: a CI test, `unreleased-guard.test.ts`, fails on any
+  tracked `private/` file).
 - **Fusion rules:** one solid body per part; axis-aligned boxes and upright/lying cylinders; at most 60 bodies; real
   units (cm default, `--unit`), furniture standing on the floor, overall bounding box = the item size, `--up y|z` and
   `--front` for the axes. A body's colour is its appearance colour. Name tokens joined by `_` (the rest is a label):
@@ -86,8 +96,10 @@ Furniture is never a mesh: an item is at most 60 `box`/`cyl`/`loft` parts with f
   lamp (entity link, "Colour and brightness from", "Own glow colour"; mark the shining bodies with `glow`), `--group
   lamp|sofa|storage|…`, `--room`, `--tags`, `--mount floor|surface|wall|ceiling --wall-y M`, `--surface`, `--electric`,
   `--hole`.
-- Converter is `custom_objects/mesh2pack.py` (stdlib only), tests in `tests/test_mesh2pack.py`. Unverified: how Fusion's OBJ
-  export names bodies (a first test export with 2 boxes and a cylinder settles it). Run its tests locally with
+- Converter is `custom_objects/mesh2pack.py` (stdlib only; signing needs `voluptuous` and `cryptography`), tests in
+  `tests/test_mesh2pack.py`. Verified with Fusion: its OBJ export keeps one `g <body name>` group per body, in cm, Z-up,
+  and writes a `.mtl` with the body's appearance (a body without one has no `usemtl`, so give it a `role-…` token). Only
+  each body's bounding box is read: holes, cuts and curves are ignored. Run the tests locally with
   `pytest tests/test_mesh2pack.py --noconftest` (the other tests need Home Assistant).
 
 ## Keeping up with upstream (the main job)
@@ -143,6 +155,9 @@ restart Home Assistant from its UI (Settings → System → Restart); the owner 
    `neonplan3d` errors.
 6. Rollback: remove the folder, copy the backup folder and the `.storage/neonplan3d.*` files back, restart.
 
+Deploy state (update after each deploy): the Pi runs the build of commit `1a388b4` (own furniture key, glow colour,
+deployed 2026-10-25, backup in `~/neonplan-backup/2026-10-25`); the lamp body colour (`cdc289a`) is not deployed yet.
+
 ## Practical notes for agents on this machine
 
 - Git is installed but not on the PATH of every shell: prepend `C:\Program Files\Git\cmd` (or call it by full path).
@@ -160,4 +175,4 @@ restart Home Assistant from its UI (Settings → System → Restart); the owner 
 - Separate fill colours for walls, floors and furniture (the global fill is one colour).
 - Colours that survive the Blueprint and Day looks as chosen (they are remapped there).
 - Tint outdoor objects separately: the global fill also recolours navy fence posts and driveways.
-- Colours for pack furniture parts, lamps and roofs.
+- Colours for pack furniture parts and roofs (lamp bodies are done; a pack lamp's own parts keep their pack colours).
