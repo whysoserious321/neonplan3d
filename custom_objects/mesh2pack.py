@@ -4,7 +4,7 @@ Model every part of the furniture as its own body (boxes, cylinders), name it wi
 colour. Each body becomes one pack part; its bounding box gives position and size. The overall bounding box of all
 bodies is the size of the furniture.
 
-    python tools/mesh2pack.py cabinet.obj --id studio.wall_cabinet --name "Wall cabinet 80" --publisher Me \\
+    python custom_objects/mesh2pack.py cabinet.obj --id studio.wall_cabinet --name "Wall cabinet 80" --publisher Me \\
         --mount wall --wall-y 1.45 --out private/packs/wall_cabinet.json
     python tools/fp3dpack.py sign private/packs/wall_cabinet.json --key KEYFILE
     python tools/fp3dpack.py verify private/packs/wall_cabinet.fp3dpack

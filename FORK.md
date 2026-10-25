@@ -64,6 +64,8 @@ colours survive there as "signal colours", dull ones do not.
 
 ## Own furniture (own signing key + Fusion converter)
 
+All tools, models and the step-by-step guide are in `custom_objects/` (see its README).
+
 Furniture is never a mesh: an item is at most 60 `box`/`cyl`/`loft` parts with flat colours (no textures), see
 `docs/packs.md`. Only packs signed with a key in `PACK_PUBLIC_KEYS` import.
 
@@ -72,7 +74,7 @@ Furniture is never a mesh: an item is at most 60 `box`/`cyl`/`loft` parts with f
   (it cannot unlock Pro). The private key is `%USERPROFILE%\.neonplan3d\own-pack-key.pem` (outside the repo, back it up;
   if it is lost, make a new one with `python tools/fp3dpack.py keygen KEYFILE` and add its line to both places).
   Backend only: deploy the integration folder, restart HA. A HACS/upstream update overwrites `packs.py`.
-- **Workflow:** model in Fusion → export OBJ (or GLB) → `python tools/mesh2pack.py model.obj --id studio.NAME --name "…"
+- **Workflow:** model in Fusion → export OBJ (or GLB) → `python custom_objects/mesh2pack.py model.obj --id studio.NAME --name "…"
   --publisher … [flags]` → `python tools/fp3dpack.py sign X.json --key KEY` → `verify` → Editor → Furniture → Import
   furniture pack. A higher `release` in the JSON replaces an installed pack of the same id.
 - **Fusion rules:** one solid body per part; axis-aligned boxes and upright/lying cylinders; at most 60 bodies; real
@@ -84,7 +86,7 @@ Furniture is never a mesh: an item is at most 60 `box`/`cyl`/`loft` parts with f
   lamp (entity link, "Colour and brightness from", "Own glow colour"; mark the shining bodies with `glow`), `--group
   lamp|sofa|storage|…`, `--room`, `--tags`, `--mount floor|surface|wall|ceiling --wall-y M`, `--surface`, `--electric`,
   `--hole`.
-- Converter is `tools/mesh2pack.py` (stdlib only), tests in `tests/test_mesh2pack.py`. Unverified: how Fusion's OBJ
+- Converter is `custom_objects/mesh2pack.py` (stdlib only), tests in `tests/test_mesh2pack.py`. Unverified: how Fusion's OBJ
   export names bodies (a first test export with 2 boxes and a cylinder settles it). Run its tests locally with
   `pytest tests/test_mesh2pack.py --noconftest` (the other tests need Home Assistant).
 

@@ -1,4 +1,4 @@
-"""tools/mesh2pack.py: bodies of an OBJ/GLB model become the parts of a furniture pack."""
+"""custom_objects/mesh2pack.py: bodies of an OBJ/GLB model become the parts of a furniture pack."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import struct
 import pytest
 
 _spec = importlib.util.spec_from_file_location(
-    "mesh2pack", Path(__file__).resolve().parent.parent / "tools" / "mesh2pack.py"
+    "mesh2pack", Path(__file__).resolve().parent.parent / "custom_objects" / "mesh2pack.py"
 )
 assert _spec and _spec.loader
 m2p = importlib.util.module_from_spec(_spec)
