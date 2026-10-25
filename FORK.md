@@ -62,6 +62,32 @@ colour is applied as `own * min(max(r,g,b) / 0.04, 2)`, so a body shows exactly 
 Own wall/floor colours are used as given. Blueprint and Day remap colours in the shader as before; bright saturated own
 colours survive there as "signal colours", dull ones do not.
 
+## Own furniture (own signing key + Fusion converter)
+
+Furniture is never a mesh: an item is at most 60 `box`/`cyl`/`loft` parts with flat colours (no textures), see
+`docs/packs.md`. Only packs signed with a key in `PACK_PUBLIC_KEYS` import.
+
+- **Key:** the fork owner's key `36b12a7e9997` is in `PACK_PUBLIC_KEYS` **and** `STUDIO_KEYS` (`packs.py`, marked
+  `FORK custom-fill`), so it can only sign packs whose id starts with `studio.` and that carry no `features` or `module`
+  (it cannot unlock Pro). The private key is `%USERPROFILE%\.neonplan3d\own-pack-key.pem` (outside the repo, back it up;
+  if it is lost, make a new one with `python tools/fp3dpack.py keygen KEYFILE` and add its line to both places).
+  Backend only: deploy the integration folder, restart HA. A HACS/upstream update overwrites `packs.py`.
+- **Workflow:** model in Fusion → export OBJ (or GLB) → `python tools/mesh2pack.py model.obj --id studio.NAME --name "…"
+  --publisher … [flags]` → `python tools/fp3dpack.py sign X.json --key KEY` → `verify` → Editor → Furniture → Import
+  furniture pack. A higher `release` in the JSON replaces an installed pack of the same id.
+- **Fusion rules:** one solid body per part; axis-aligned boxes and upright/lying cylinders; at most 60 bodies; real
+  units (cm default, `--unit`), furniture standing on the floor, overall bounding box = the item size, `--up y|z` and
+  `--front` for the axes. A body's colour is its appearance colour. Name tokens joined by `_` (the rest is a label):
+  `cyl`, `loft`, `glow`, `screen`, `edges|edgesglow|edgesfaint`, `top-RRGGBB`, `role-wood` (palette role, follows the
+  look), `fix-wdh`, `rotN`. Example: `edgesfaint_door_l`, `cyl_glow_bulb`, `role-metal_handle`.
+- **Category and behaviour come from flags, not from the shape:** `--light strip|floor|table|wall|pendant|…` makes it a
+  lamp (entity link, "Colour and brightness from", "Own glow colour"; mark the shining bodies with `glow`), `--group
+  lamp|sofa|storage|…`, `--room`, `--tags`, `--mount floor|surface|wall|ceiling --wall-y M`, `--surface`, `--electric`,
+  `--hole`.
+- Converter is `tools/mesh2pack.py` (stdlib only), tests in `tests/test_mesh2pack.py`. Unverified: how Fusion's OBJ
+  export names bodies (a first test export with 2 boxes and a cylinder settles it). Run its tests locally with
+  `pytest tests/test_mesh2pack.py --noconftest` (the other tests need Home Assistant).
+
 ## Keeping up with upstream (the main job)
 
 HACS is **not** used for this install; updating through HACS would overwrite the fork with the official version.

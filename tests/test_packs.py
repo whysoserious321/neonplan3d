@@ -336,3 +336,9 @@ def test_a_module_pack_needs_no_furniture_and_its_code_is_served_apart() -> None
     slim = _without_code({**clean, "source": clean})
     assert "code" not in slim["module"] and "code" not in slim["source"]["module"]
     assert slim["module"]["api"] == 1
+
+
+def test_fork_owner_key_is_a_studio_key() -> None:
+    """FORK custom-fill: the owner's own key signs studio furniture only (no Pro features, no code)."""
+    assert "36b12a7e9997" in packs.PACK_PUBLIC_KEYS
+    assert "36b12a7e9997" in packs.STUDIO_KEYS
