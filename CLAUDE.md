@@ -9,4 +9,4 @@
 - Visual self-check: `npm run screenshot` renders `preview/index.html` (invented demo data, mock hass) into `preview/screenshots/`.
 - Deploy to the user's HA: `npm run deploy` (target in the untracked `deploy.local.json`). Never commit real floor plans, IPs or device names.
 - After each phase: bump the version in `manifest.json`, commit, push, check CI, and tell the user in German what is new and how to test it.
-- **Custom-colours fork (`whysoserious321/neonplan3d`, branch `custom-fill`): read `FORK.md` first.** It lists the fork's changes, how to rebase on upstream, and how to deploy. In this fork the owner writes English: answer in English, not German.
+- **Custom-colours fork (`whysoserious321/neonplan3d`, branch `custom-colours-and-objects`): read `FORK.md` first.** It lists the fork's changes, how to rebase on upstream, and how to deploy. In this fork the owner writes English: answer in English, not German.

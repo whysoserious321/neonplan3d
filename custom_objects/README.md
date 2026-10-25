@@ -1,7 +1,7 @@
 # Custom objects (own furniture for NeonPlan 3D)
 
 Everything for making your own furniture lives here: the converter, your Fusion models and this guide.
-Fork-only (branch `custom-fill`). Background and the signing key are described in `../FORK.md` ("Own furniture").
+Fork-only (branch `custom-colours-and-objects`). Background and the signing key are described in `../FORK.md` ("Own furniture").
 
 ```
 custom_objects/

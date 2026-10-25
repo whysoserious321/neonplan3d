@@ -7,7 +7,7 @@ answer in English).
 This is **not** the official NeonPlan 3D. Upstream is `Mastershort/neonplan3d` (MIT). The name belongs to upstream; do
 not present this fork as official. Pro features and the shop are untouched: nothing here unlocks anything.
 
-- Fork: `whysoserious321/neonplan3d`, working branch **`custom-fill`** (the default branch stays a clean upstream copy).
+- Fork: `whysoserious321/neonplan3d`, working branch **`custom-colours-and-objects`** (the default branch stays a clean upstream copy).
 - Remotes in a clone: `origin` = the fork, `upstream` = `https://github.com/Mastershort/neonplan3d.git`.
 - Based on upstream 2.0.0 (commit `81e0e9c`). The fork's commits sit on top of it.
 
@@ -97,7 +97,7 @@ HACS is **not** used for this install; updating through HACS would overwrite the
 1. Make sure the working tree is clean, then:
    ```
    git fetch upstream
-   git rebase upstream/main        # on branch custom-fill
+   git rebase upstream/main        # on branch custom-colours-and-objects
    ```
 2. Resolve conflicts. Expect them in `editor.ts`, `i18n.ts`, `model.ts`, `schema.py`, `theme.ts`, and **always** in
    the compiled bundles `custom_components/neonplan3d/frontend/*.js`. For the bundles take either side, then rebuild.
