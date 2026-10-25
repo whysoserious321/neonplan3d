@@ -4,7 +4,7 @@ Quick start (the test guitar, no flags; run it from anywhere):
 
     python custom_objects/mesh2pack.py
 
-This converts custom_objects/models/guitar_test.obj into private/packs/guitar_test.json (id studio.guitar_test, name
+This converts custom_objects/models/guitar_test.obj into custom_objects/packs/guitar_test.json (id studio.guitar_test, name
 "Guitar test", Fusion's Z-up) and then signs and verifies it with your key (--no-sign to skip). For another model give just its
 path: `python custom_objects/mesh2pack.py custom_objects/models/chair.obj` (id and name come from the file name).
 All flags below are optional.
@@ -14,9 +14,9 @@ colour. Each body becomes one pack part; its bounding box gives position and siz
 bodies is the size of the furniture.
 
     python custom_objects/mesh2pack.py cabinet.obj --id studio.wall_cabinet --name "Wall cabinet 80" --publisher Me \\
-        --mount wall --wall-y 1.45 --out private/packs/wall_cabinet.json
-    python tools/fp3dpack.py sign private/packs/wall_cabinet.json --key KEYFILE
-    python tools/fp3dpack.py verify private/packs/wall_cabinet.fp3dpack
+        --mount wall --wall-y 1.45 --out custom_objects/packs/wall_cabinet.json
+    python tools/fp3dpack.py sign custom_objects/packs/wall_cabinet.json --key KEYFILE
+    python tools/fp3dpack.py verify custom_objects/packs/wall_cabinet.fp3dpack
 
 Body names are tokens joined by "_", the rest is a free label (it is ignored):
     cyl            a cylinder (upright, or lying along the width or depth when it is longest there)
@@ -439,7 +439,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--family", help="variants of one furniture share a family id")
     p.add_argument("--key", type=Path, default=DEFAULT_KEY, help=f"signing key (default: {DEFAULT_KEY})")
     p.add_argument("--no-sign", action="store_true", help="only write the pack source, do not sign and verify it")
-    p.add_argument("--out", type=Path, help="pack source to write (default: private/packs/<file name>.json)")
+    p.add_argument("--out", type=Path, help="pack source to write (default: custom_objects/packs/<file name>.json)")
     return p
 
 
@@ -464,7 +464,7 @@ def main() -> None:
         check(payload)
     except (ModelError, ValueError, KeyError) as err:
         sys.exit(paint("err", f"error: {err}"))
-    out = args.out or REPO / "private" / "packs" / f"{stem}.json"
+    out = args.out or REPO / "custom_objects" / "packs" / f"{stem}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     item = payload["items"][0]

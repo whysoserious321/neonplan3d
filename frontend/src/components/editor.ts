@@ -10952,7 +10952,7 @@ export class Fp3dEditor extends LitElement {
         ${this.len(this.t("depth"), f.d, (v) => this.updateFurniture({ d: Math.max(0.01, v) }), 0.01, 0.01)}
         ${this.len(this.t("height_m"), f.h, (v) => this.updateFurniture({ h: Math.max(0.005, v) }), 0.01, 0)}
         ${this.num(this.t("rotation"), f.rotation, (v) => this.updateFurniture({ rotation: ((v % 360) + 360) % 360 }), 1)}
-        ${isLamp(f.type) ? nothing : this.colorField(this.t("furn_color"), f.color ?? null, "#172238", (v) => this.updateFurniture({ color: v }), this.t("furn_color_hint"))}
+        ${this.colorField(this.t(isLamp(f.type) ? "furn_color_lamp" : "furn_color"), f.color ?? null, "#172238", (v) => this.updateFurniture({ color: v }), this.t(isLamp(f.type) ? "furn_color_lamp_hint" : "furn_color_hint"))}
         ${isLamp(f.type)
           ? nothing
           : html`<label class="fp3d-check" title=${this.t("furn_mirror_hint")}

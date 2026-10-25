@@ -9,7 +9,12 @@ custom_objects/
   models/
     guitar_test.f3d     Fusion model of the test guitar (open it in Fusion)
     guitar_test.obj     its OBJ export (+ guitar_test.mtl, keep both together)
+  packs/
+    guitar_test.json    generated pack source
+    guitar_test.fp3dpack  the signed pack to import (no private key inside)
 ```
+
+(Packs live here and not in `private/`: a test in CI refuses anything tracked under `private/`.)
 
 The signing tool is **not** moved here: `tools/fp3dpack.py` belongs to upstream (docs, shop and tests use it, and
 moving it would conflict on every rebase). Call it from the repo root as shown below.
@@ -60,7 +65,7 @@ Fusion tips (this install: Z-up, mm):
 ## Quick start (no flags)
 
 From the repo root, convert `models/guitar_test.obj` with all defaults (id `studio.guitar_test`, Z-up, pack source
-written to `private/packs/guitar_test.json`). It prints the settings it used, then signs and verifies the pack with
+written to `custom_objects/packs/guitar_test.json`). It prints the settings it used, then signs and verifies the pack with
 your key (`--key`, default `~/.neonplan3d/own-pack-key.pem`; `--no-sign` stops after writing the JSON), so the
 `.fp3dpack` is ready to import:
 
@@ -74,12 +79,12 @@ For another model just give its path, the id and name come from the file name:
 ## Workflow by hand (all flags, separate steps)
 
 Run from the repo root (`C:\Users\sachi\Desktop\neonplan3d`). Needs `pip install voluptuous cryptography`
-for checking and signing. The pack source and the signed pack go to `private/packs/` (git-ignored).
+for checking and signing. The pack source and the signed pack go to `custom_objects/packs/` (committed).
 
 ```
-python custom_objects/mesh2pack.py custom_objects/models/guitar_test.obj --id studio.guitar_test --name "Guitar test" --publisher sachi --up z --group decor --out private/packs/guitar_test.json
-python tools/fp3dpack.py sign private/packs/guitar_test.json --key %USERPROFILE%\.neonplan3d\own-pack-key.pem
-python tools/fp3dpack.py verify private/packs/guitar_test.fp3dpack
+python custom_objects/mesh2pack.py custom_objects/models/guitar_test.obj --id studio.guitar_test --name "Guitar test" --publisher sachi --up z --group decor --out custom_objects/packs/guitar_test.json
+python tools/fp3dpack.py sign custom_objects/packs/guitar_test.json --key %USERPROFILE%\.neonplan3d\own-pack-key.pem
+python tools/fp3dpack.py verify custom_objects/packs/guitar_test.fp3dpack
 ```
 
 Then in Home Assistant: **Extensions ▸ Import furniture pack**, pick the `.fp3dpack`.

@@ -3509,6 +3509,7 @@ export class Fp3dView3d extends LitElement {
       // "colour"; others "manual", "default", an empty one)
       effect: !!st && st.state === "on" && typeof st.attributes.effect === "string" && !/^(none|off|solid|static|normal|white|colou?r|rgb|manual|default|-|)$/i.test(st.attributes.effect.trim()),
       variant: f.variant,
+      bodyColor: f.color ?? null,
       show: f.marker ?? undefined,
       fromFurniture: true,
     };
