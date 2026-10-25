@@ -1,0 +1,87 @@
+{
+ "payload": {
+  "format": "fp3dpack",
+  "version": 1,
+  "id": "studio.guitar_test",
+  "name": "Guitar test",
+  "publisher": "Me",
+  "items": [
+   {
+    "id": "guitar_test",
+    "name": {
+     "en": "Guitar test"
+    },
+    "size": [
+     0.5,
+     0.4,
+     1.18
+    ],
+    "parts": [
+     {
+      "shape": "box",
+      "x": 0.0,
+      "z": 0.0,
+      "w": 1.0,
+      "d": 1.0,
+      "y": 0.0,
+      "h": 0.4068,
+      "color": "wood"
+     },
+     {
+      "shape": "cyl",
+      "x": 0.0002,
+      "z": 0.0,
+      "w": 0.4366,
+      "d": 0.5472,
+      "y": 0.4068,
+      "h": 0.5932,
+      "color": "dark"
+     },
+     {
+      "shape": "loft",
+      "x": 0.3497,
+      "z": -0.0006,
+      "w": 0.3007,
+      "d": 0.4989,
+      "y": 0.4068,
+      "h": 0.1186,
+      "color": "wood",
+      "tx": 0.2493,
+      "tz": -0.0006,
+      "tw": 0.0999,
+      "td": 0.4989
+     },
+     {
+      "shape": "loft",
+      "x": -0.3496,
+      "z": -0.0,
+      "w": 0.3008,
+      "d": 0.4979,
+      "y": 0.4068,
+      "h": 0.1186,
+      "color": "wood",
+      "tx": -0.2497,
+      "tz": -0.0,
+      "tw": 0.101,
+      "td": 0.4979
+     }
+    ],
+    "symbol": [
+     {
+      "shape": "rect",
+      "x": 0,
+      "z": 0,
+      "w": 1,
+      "d": 1
+     }
+    ]
+   }
+  ],
+  "licensee": null,
+  "instance": null
+ },
+ "signature": {
+  "key": "36b12a7e9997",
+  "sig": "3WqJRrhFTRT6nOunBw+lKgUZotq4JkCEWTiP5sendn6aFsx1kQdSrLXNyfCQ+ubdFK0jmL2XykrpMkab8pCmCw=="
+ }
+}

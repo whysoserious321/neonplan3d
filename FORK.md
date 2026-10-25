@@ -7,7 +7,7 @@ answer in English).
 This is **not** the official NeonPlan 3D. Upstream is `Mastershort/neonplan3d` (MIT). The name belongs to upstream; do
 not present this fork as official. Pro features and the shop are untouched: nothing here unlocks anything.
 
-- Fork: `whysoserious321/neonplan3d`, working branch **`custom-colours-and-objects`** (the default branch stays a clean upstream copy).
+- Fork: `whysoserious321/neonplan3d`, working branch **`custom-colours-and-own-furniture`** (the default branch stays a clean upstream copy).
 - Remotes in a clone: `origin` = the fork, `upstream` = `https://github.com/Mastershort/neonplan3d.git`.
 - Based on upstream 2.0.0 (commit `81e0e9c`). The fork's commits sit on top of it.
 
@@ -75,7 +75,7 @@ Furniture is never a mesh: an item is at most 60 `box`/`cyl`/`loft` parts with f
   if it is lost, make a new one with `python tools/fp3dpack.py keygen KEYFILE` and add its line to both places).
   Backend only: deploy the integration folder, restart HA. A HACS/upstream update overwrites `packs.py`.
 - **Workflow:** model in Fusion → export OBJ (or GLB) → `python custom_objects/mesh2pack.py model.obj --id studio.NAME --name "…"
-  --publisher … [flags]` → `python tools/fp3dpack.py sign X.json --key KEY` → `verify` → Editor → Furniture → Import
+  --publisher … [flags]` → `python tools/fp3dpack.py sign X.json --key KEY` → `verify` → Extensions → Import
   furniture pack. A higher `release` in the JSON replaces an installed pack of the same id.
 - **Fusion rules:** one solid body per part; axis-aligned boxes and upright/lying cylinders; at most 60 bodies; real
   units (cm default, `--unit`), furniture standing on the floor, overall bounding box = the item size, `--up y|z` and
@@ -97,7 +97,7 @@ HACS is **not** used for this install; updating through HACS would overwrite the
 1. Make sure the working tree is clean, then:
    ```
    git fetch upstream
-   git rebase upstream/main        # on branch custom-colours-and-objects
+   git rebase upstream/main        # on branch custom-colours-and-own-furniture
    ```
 2. Resolve conflicts. Expect them in `editor.ts`, `i18n.ts`, `model.ts`, `schema.py`, `theme.ts`, and **always** in
    the compiled bundles `custom_components/neonplan3d/frontend/*.js`. For the bundles take either side, then rebuild.

@@ -42,7 +42,7 @@ def _obj(path: Path, bodies: dict[str, tuple[list, str]]) -> Path:
 
 
 def _args(**over: object) -> argparse.Namespace:
-    base = ["--id", "studio.wall_cabinet", "--name", "Wall cabinet 80", "--publisher", "Me", "--unit", "cm"]
+    base = ["--id", "studio.wall_cabinet", "--name", "Wall cabinet 80", "--publisher", "Me", "--unit", "cm", "--up", "y"]
     args = m2p.build_parser().parse_args(["model.obj", *base])
     for key, value in over.items():
         setattr(args, key, value)

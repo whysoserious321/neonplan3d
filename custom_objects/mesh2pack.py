@@ -1,5 +1,14 @@
 """Turn a simple 3D model (OBJ or GLB, e.g. from Fusion) into the source of a NeonPlan 3D furniture pack.
 
+Quick start (the test guitar, no flags; run it from anywhere):
+
+    python custom_objects/mesh2pack.py
+
+This converts custom_objects/models/guitar_test.obj into private/packs/guitar_test.json (id studio.guitar_test, name
+"Guitar test", Fusion's Z-up) and then signs and verifies it with your key (--no-sign to skip). For another model give just its
+path: `python custom_objects/mesh2pack.py custom_objects/models/chair.obj` (id and name come from the file name).
+All flags below are optional.
+
 Model every part of the furniture as its own body (boxes, cylinders), name it with the tokens below and give it a
 colour. Each body becomes one pack part; its bounding box gives position and size. The overall bounding box of all
 bodies is the size of the furniture.
@@ -35,14 +44,40 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 from pathlib import Path
 import re
 import struct
+import subprocess
 import sys
 
 ROLES = {"body", "fabric", "cushion", "wood", "white", "metal", "dark", "glass", "plant", "pot", "accent"}
 UNITS = {"mm": 0.001, "cm": 0.01, "m": 1.0}
 MAX_PARTS = 60
+REPO = Path(__file__).resolve().parent.parent
+DEFAULT_KEY = Path.home() / ".neonplan3d" / "own-pack-key.pem"
+DEFAULT_MODEL = REPO / "custom_objects" / "models" / "guitar_test.obj"
+
+# ------------------------------------------------------------------ coloured console output (off when piped / NO_COLOR)
+
+_COLOR = (sys.stdout.isatty() or "FORCE_COLOR" in os.environ) and "NO_COLOR" not in os.environ
+if _COLOR and os.name == "nt":
+    os.system("")  # switches the Windows console to ANSI escape codes
+_CODES = {"head": "1;36", "ok": "1;32", "val": "33", "err": "1;31", "dim": "90", "cmd": "35", "flag": "36"}
+
+
+def paint(kind: str, text: str) -> str:
+    return f"[{_CODES[kind]}m{text}[0m" if _COLOR else text
+
+
+def show_usage(parser: argparse.ArgumentParser) -> None:
+    """The usage block, flags in cyan and the optional brackets dimmed; printed at every run."""
+    usage = parser.format_usage().rstrip()
+    if _COLOR and sys.version_info < (3, 14):  # 3.14 colours the usage by itself
+        usage = re.sub(r"(--[a-z-]+)", lambda m: paint("flag", m.group(1)) + "[0m", usage)
+    print(usage)
+    print(paint("dim", "(every argument is optional: no flags = the test guitar, see --help)"), flush=True)
+
 
 Vec = tuple[float, float, float]
 
@@ -363,16 +398,16 @@ def check(payload: dict) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("model", type=Path, help=".obj or .glb")
+    p.add_argument("model", type=Path, nargs="?", default=DEFAULT_MODEL, help=f".obj or .glb (default: {DEFAULT_MODEL})")
     p.add_argument(
-        "--id", required=True, help='pack id, e.g. "studio.wall_cabinet" (the item id is the part after the dot)'
+        "--id", help='pack id, e.g. "studio.wall_cabinet" (default: "studio." + the file name; the item id is the part after the dot)'
     )
-    p.add_argument("--name", required=True, help="name of the furniture (English)")
+    p.add_argument("--name", help="name of the furniture (English; default: the file name)")
     p.add_argument("--name-de", help="name of the furniture (German, optional)")
     p.add_argument("--pack-name", help="name of the pack (default: the furniture name)")
-    p.add_argument("--publisher", required=True)
+    p.add_argument("--publisher", default="Me", help="default: Me")
     p.add_argument("--unit", choices=sorted(UNITS), help="unit of the model (default: cm for OBJ, m for GLB)")
-    p.add_argument("--up", choices=["y", "z"], default="y")
+    p.add_argument("--up", choices=["y", "z"], help="which axis points up (default: z, as in this Fusion install)")
     p.add_argument("--front", choices=["+z", "-z", "+x", "-x"], default="+z")
     p.add_argument("--mtl", type=Path, help="material file for an OBJ (default: the one named in the OBJ)")
     p.add_argument("--mount", choices=["floor", "surface", "wall", "ceiling"], default="floor")
@@ -402,12 +437,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--room", help="comma separated rooms: living, bedroom, kitchen, ...")
     p.add_argument("--tags", help="comma separated search words")
     p.add_argument("--family", help="variants of one furniture share a family id")
-    p.add_argument("--out", type=Path, help="pack source to write (default: next to the model)")
+    p.add_argument("--key", type=Path, default=DEFAULT_KEY, help=f"signing key (default: {DEFAULT_KEY})")
+    p.add_argument("--no-sign", action="store_true", help="only write the pack source, do not sign and verify it")
+    p.add_argument("--out", type=Path, help="pack source to write (default: private/packs/<file name>.json)")
     return p
 
 
 def main() -> None:
-    args = build_parser().parse_args()
+    parser = build_parser()
+    args = parser.parse_args()
+    show_usage(parser)
+    stem = args.model.stem
+    args.id = args.id or "studio." + re.sub(r"[^a-z0-9_]+", "_", stem.lower()).strip("_")
+    args.name = args.name or stem.replace("_", " ").replace("-", " ").strip().capitalize()
+    args.up = args.up or "z"
     suffix = args.model.suffix.lower()
     args.unit = args.unit or ("m" if suffix in (".glb", ".gltf") else "cm")
     try:
@@ -420,14 +463,39 @@ def main() -> None:
         payload = convert(bodies, args)
         check(payload)
     except (ModelError, ValueError, KeyError) as err:
-        sys.exit(f"error: {err}")
-    out = args.out or args.model.with_suffix(".json")
+        sys.exit(paint("err", f"error: {err}"))
+    out = args.out or REPO / "private" / "packs" / f"{stem}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     item = payload["items"][0]
-    print(
-        f"{out}: {args.name}, {item['size'][0]} x {item['size'][1]} x {item['size'][2]} m, {len(item['parts'])} parts"
-    )
+    print(f"{paint('head', 'settings:')} {paint('val', settings_line(args))}", flush=True)
+    size = f"{item['size'][0]} x {item['size'][1]} x {item['size'][2]} m"
+    print(f"{paint('head', 'wrote')} {out}: {paint('val', args.name)}, {paint('val', size)}, {paint('val', str(len(item['parts'])) + ' parts')}", flush=True)
+    if args.no_sign:
+        return
+    if not args.key.exists():
+        sys.exit(paint("err", f"not signed: key {args.key} not found (use --key, or --no-sign to stop here)"))
+    pack = out.with_suffix(".fp3dpack")
+    for step in (["sign", str(out), "--key", str(args.key)], ["verify", str(pack)]):
+        print(paint("cmd", f"$ python tools/fp3dpack.py {step[0]} {step[1]}{' --key ...' if step[0] == 'sign' else ''}"), flush=True)
+        done = subprocess.run([sys.executable, str(REPO / "tools" / "fp3dpack.py"), *step], cwd=REPO)
+        if done.returncode:
+            sys.exit(paint("err", f"error: fp3dpack {step[0]} failed"))
+    print(f"{paint('ok', 'ready:')} {pack}")
+    print(f"       import it in Home Assistant: NeonPlan {paint('head', 'Extensions')} > {paint('head', 'Import furniture pack')}")
+
+
+def settings_line(args: argparse.Namespace) -> str:
+    """The values this run used, as the flags that would give the same result."""
+    parts = [
+        str(args.model), f"--id {args.id}", f'--name "{args.name}"', f'--publisher "{args.publisher}"',
+        f"--up {args.up}", f"--unit {args.unit}", f"--front {args.front}", f"--mount {args.mount}",
+    ]  # fmt: skip
+    for flag in ("wall_y", "light", "group", "room", "tags", "family", "pack_name", "name_de"):
+        if getattr(args, flag) is not None:
+            parts.append(f'--{flag.replace("_", "-")} "{getattr(args, flag)}"')
+    parts += [f"--{flag}" for flag in ("surface", "hole", "electric") if getattr(args, flag)]
+    return " ".join(parts)
 
 
 if __name__ == "__main__":

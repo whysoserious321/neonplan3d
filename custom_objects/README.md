@@ -1,7 +1,7 @@
 # Custom objects (own furniture for NeonPlan 3D)
 
 Everything for making your own furniture lives here: the converter, your Fusion models and this guide.
-Fork-only (branch `custom-colours-and-objects`). Background and the signing key are described in `../FORK.md` ("Own furniture").
+Fork-only (branch `custom-colours-and-own-furniture`). Background and the signing key are described in `../FORK.md` ("Own furniture").
 
 ```
 custom_objects/
@@ -57,7 +57,21 @@ Fusion tips (this install: Z-up, mm):
 - Export: File ▸ Export ▸ type *OBJ* (and *Fusion Archive (*.f3d)* to keep the model). Fusion writes cm and keeps
   body names as `g` groups in the OBJ.
 
-## Workflow
+## Quick start (no flags)
+
+From the repo root, convert `models/guitar_test.obj` with all defaults (id `studio.guitar_test`, Z-up, pack source
+written to `private/packs/guitar_test.json`). It prints the settings it used, then signs and verifies the pack with
+your key (`--key`, default `~/.neonplan3d/own-pack-key.pem`; `--no-sign` stops after writing the JSON), so the
+`.fp3dpack` is ready to import:
+
+```
+python custom_objects/mesh2pack.py
+```
+
+For another model just give its path, the id and name come from the file name:
+`python custom_objects/mesh2pack.py custom_objects/models/chair.obj`. The flags below are only needed to override this.
+
+## Workflow by hand (all flags, separate steps)
 
 Run from the repo root (`C:\Users\sachi\Desktop\neonplan3d`). Needs `pip install voluptuous cryptography`
 for checking and signing. The pack source and the signed pack go to `private/packs/` (git-ignored).
@@ -68,7 +82,7 @@ python tools/fp3dpack.py sign private/packs/guitar_test.json --key %USERPROFILE%
 python tools/fp3dpack.py verify private/packs/guitar_test.fp3dpack
 ```
 
-Then in Home Assistant: Editor ▸ Furniture ▸ Import furniture pack, pick the `.fp3dpack`.
+Then in Home Assistant: **Extensions ▸ Import furniture pack**, pick the `.fp3dpack`.
 A higher `release` in the JSON replaces an installed pack with the same id.
 
 Flags worth knowing: `--up z|y` (Fusion here is Z-up), `--unit cm|mm|m`, `--front`, `--light strip|floor|table|…`
