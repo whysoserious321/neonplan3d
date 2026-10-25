@@ -304,6 +304,7 @@ FURNITURE_SCHEMA = vol.Schema(
         vol.Optional("bin_kind"): vol.Any(None, vol.In(WASTE_KINDS)),
         # own body colour in the neon look (None = the look's own colours)
         vol.Optional("color"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
+        vol.Optional("glow_color"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
         vol.Optional("bin_color"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
         vol.Optional("bin_lid"): vol.Any(None, vol.Match(r"^#[0-9a-fA-F]{6}$")),
         vol.Optional("bin_source"): vol.Any(None, vol.All(str, vol.Length(max=255))),

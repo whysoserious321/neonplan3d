@@ -197,6 +197,8 @@ export interface Furniture {
    * signal (yellow: water) does not show its other colours here. Null: every colour.
    */
   only_color?: string | null;
+  /** Lamps: own glow colour ("#rrggbb") instead of the light's; on/off and brightness still follow the light. */
+  glow_color?: string | null;
   /** With a power sensor: the item counts as running above this many watts (null = the default, 10 W). */
   run_w?: number | null;
   /** Awning: the fabric's fall in degrees (null = 12°). */

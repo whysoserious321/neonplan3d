@@ -11920,6 +11920,7 @@ export class Fp3dEditor extends LitElement {
           ? html`${this.entitySelect(this.t("furn_color_entity"), f.color_entity ?? null, undefined, this.entityOptions((id) => id.startsWith("light.") && id !== f.entity), (v) => this.updateFurniture({ color_entity: v === "none" ? null : v }))}
               <p class="fp3d-sub fp3d-wide">${this.t("furn_color_entity_hint")}</p>`
           : nothing}
+        ${lamp ? this.colorField(this.t("furn_glow_color"), f.glow_color ?? null, "#ffb547", (v) => this.updateFurniture({ glow_color: v }), this.t("furn_glow_color_hint")) : nothing}
         ${lamp ? this.glowScaleField(f.glow_scale, (v) => this.updateFurniture({ glow_scale: v })) : nothing}
         ${lamp && f.entity && f.entity !== "none"
           ? html`<label class="fp3d-check fp3d-wide" title=${this.t("furn_only_color_hint")}

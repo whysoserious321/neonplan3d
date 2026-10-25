@@ -16,7 +16,7 @@ export function parseColorText(text: string | null | undefined): string | null {
 }
 
 /** The colours set anywhere in a plan (walls, floors, furniture), most used first, for quick reuse. */
-export function usedColors(floors: readonly { rooms: readonly { wall_colors?: (string | null)[]; floor_color?: string | null }[]; furniture: readonly { color?: string | null }[]; walls?: readonly { color?: string | null }[] }[]): string[] {
+export function usedColors(floors: readonly { rooms: readonly { wall_colors?: (string | null)[]; floor_color?: string | null }[]; furniture: readonly { color?: string | null; glow_color?: string | null }[]; walls?: readonly { color?: string | null }[] }[]): string[] {
   const count = new Map<string, number>();
   const add = (c: string | null | undefined) => {
     const v = parseColorText(c);
@@ -27,7 +27,10 @@ export function usedColors(floors: readonly { rooms: readonly { wall_colors?: (s
       add(r.floor_color);
       for (const c of r.wall_colors ?? []) add(c);
     }
-    for (const m of f.furniture) add(m.color);
+    for (const m of f.furniture) {
+      add(m.color);
+      add(m.glow_color);
+    }
     for (const w of f.walls ?? []) add(w.color);
   }
   return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c).slice(0, 12);

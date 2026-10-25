@@ -21,6 +21,7 @@ All colours are optional; with nothing set, the look is identical to upstream.
 | **Wall colour** per room edge and per free wall | Editor → room → wall list, "Wall colour" field; free wall form | `Room.wall_colors?: (string\|null)[]` (index = edge), `FreeWall.color` |
 | **Floor colour** per room | Editor → room form, under "Material" | `Room.floor_color` |
 | **Furniture colour** per piece | Editor → furniture form, under "Rotation" (not for lamps) | `Furniture.color` |
+| **Glow colour** per lamp (replaces the light's colour; on/off and brightness still follow the light) | Editor → furniture form of a lamp, "Own glow colour" | `Furniture.glow_color` |
 | **Colour field** with text box (accepts `#rrggbb`, `rrggbb`, `r, g, b`, `rgb(...)`) and swatches of colours already used in the plan | all of the above in the editor | – |
 
 All stored colours are `#rrggbb` strings or null/absent.
@@ -49,7 +50,8 @@ All stored colours are `#rrggbb` strings or null/absent.
 - `frontend/build.mjs` – size budgets raised a little: `neonplan3d.js` 692 KB, `neonplan3d-3d.js` 816 KB,
   `neonplan3d-card-editor.js` 271 KB. `neonplan3d-editor.js` is tight (about 928 of 930 KB): raise its budget with a note
   if a rebase pushes it over.
-- Tests: `frontend/src/fill.test.ts`, `walls-color.test.ts`, `color-input.test.ts`.
+- `devices.ts` `overrideGlowColor()` (applied in `view3d.ts` after `onlyColor()`).
+- Tests: `frontend/src/glow-color.test.ts`, `frontend/src/fill.test.ts`, `walls-color.test.ts`, `color-input.test.ts`.
 
 ### Colour maths (easy to get wrong)
 
